@@ -6,6 +6,7 @@ const {
   addContact,
   removeContact,
   updateContact,
+  updateStatusContact,
 } = require("../services/contactsServices");
 
 const listContactsCtrl = async (req, res, next) => {
@@ -65,10 +66,25 @@ const updateContactCtrl = async (req, res, next) => {
   }
 };
 
+const updateStatusContactCtrl = async (req, res, next) => {
+  try {
+    console.log(req.body);
+    const { contactId } = req.params;
+    const resultContact = await updateStatusContact(contactId, req.body);
+    if (!resultContact) {
+      throw HttpError(404, "Not found");
+    }
+    res.json(resultContact);
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   listContactsCtrl,
   getByIdCtrl,
   addContactCtrl,
   removeContactCtrl,
   updateContactCtrl,
+  updateStatusContactCtrl,
 };

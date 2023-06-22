@@ -25,10 +25,18 @@ const updateContact = async (id, body) => {
   return updatedContact;
 };
 
+const updateStatusContact = async (id, body) => {
+  const updatedContact = await Contact.findByIdAndUpdate(id, {
+    favorite: body.favorite,
+  });
+  return updatedContact;
+};
+
 module.exports = {
   listContacts,
   getById,
   addContact,
   removeContact,
   updateContact,
+  updateStatusContact,
 };
