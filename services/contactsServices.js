@@ -1,4 +1,5 @@
 const Contact = require("../db/models/contactsModel");
+const mongoose = require("mongoose");
 
 const listContacts = async () => {
   const contacts = await Contact.find();
@@ -6,6 +7,9 @@ const listContacts = async () => {
 };
 
 const getById = async (id) => {
+  if (!mongoose.isValidObjectId(id)) {
+    return undefined;
+  }
   const resultContact = await Contact.findById(id);
   return resultContact;
 };
