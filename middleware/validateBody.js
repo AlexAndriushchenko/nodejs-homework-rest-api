@@ -1,7 +1,10 @@
 const { HttpError } = require("../helpers");
 
-const validateBody = (schema) => (req, res, next) => {
+const validateBody = (schemaName, schema) => (req, res, next) => {
   if (Object.keys(req.body).length === 0) {
+    if (schemaName === "contactStatusSchema") {
+      throw HttpError(400, "missing field favorite");
+    }
     throw HttpError(400, "missing fields");
   }
 
