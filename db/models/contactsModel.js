@@ -6,6 +6,10 @@ const contactSchema = new Schema(
       type: String,
       required: [true, "Set name for contact"],
     },
+    owner: {
+      type: Schema.Types.ObjectId,
+      ref: "user",
+    },
     email: {
       type: String,
     },
