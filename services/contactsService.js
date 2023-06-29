@@ -1,8 +1,15 @@
-const Contact = require("../db/models/contactsModel");
+const Contact = require("../db/models/contactModel");
 const mongoose = require("mongoose");
 
-const listContacts = async () => {
-  const contacts = await Contact.find();
+const listContacts = async (owner, page, limit, favorite) => {
+  const skip = (page - 1) * limit;
+
+  const filter = { owner };
+  if (favorite) {
+    filter.favorite = true;
+  }
+
+  const contacts = await Contact.find(filter, null, { skip, limit });
   return contacts;
 };
 

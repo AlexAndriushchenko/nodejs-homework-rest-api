@@ -1,4 +1,4 @@
-const { HttpError } = require("../helpers");
+const HttpError = require("../helpers/HttpError");
 
 const {
   listContacts,
@@ -7,11 +7,13 @@ const {
   removeContact,
   updateContact,
   updateStatusContact,
-} = require("../services/contactsServices");
+} = require("../services/contactsService");
 
 const listContactsCtrl = async (req, res, next) => {
   try {
-    const contacts = await listContacts();
+    const { _id: owner } = req.user;
+    const { page = 1, limit = 20, favorite } = req.query;
+    const contacts = await listContacts(owner, page, limit, favorite);
     res.json(contacts);
   } catch (error) {
     next(error);
@@ -33,7 +35,8 @@ const getByIdCtrl = async (req, res, next) => {
 
 const addContactCtrl = async (req, res, next) => {
   try {
-    const newContact = await addContact(req.body);
+    const { _id: owner } = req.user;
+    const newContact = await addContact({ ...req.body, owner });
     res.status(201).json(newContact);
   } catch (error) {
     next(error);
@@ -68,7 +71,6 @@ const updateContactCtrl = async (req, res, next) => {
 
 const updateStatusContactCtrl = async (req, res, next) => {
   try {
-    console.log(req.body);
     const { contactId } = req.params;
     const resultContact = await updateStatusContact(contactId, req.body);
     if (!resultContact) {
