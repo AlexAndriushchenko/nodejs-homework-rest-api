@@ -13,7 +13,7 @@ const authenticate = require("../../middleware/authMiddlewares");
 const router = express.Router();
 
 router.post(
-  "/signup",
+  "/register",
   validateBody("signupSchema", signupSchema),
   authController.signupCtrl
 );

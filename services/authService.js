@@ -14,8 +14,6 @@ const signup = async (email, password, subscription) => {
     subscription,
   });
 
-  //question!
-  //newUser.token = signToken(newUser.id);
   newUser.password = undefined;
 
   return newUser;
