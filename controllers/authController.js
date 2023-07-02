@@ -1,3 +1,6 @@
+const path = require("path");
+const fs = require("fs/promises");
+const Jimp = require("jimp");
 const User = require("../db/models/userModel");
 const HttpError = require("../helpers/HttpError");
 const ctrlWrapper = require("../helpers/ctrlWrapper");
@@ -7,6 +10,8 @@ const {
   logout,
   updateSubscription,
 } = require("../services/authService");
+
+const avatarsDir = path.join(__dirname, "../", "public", "avatars");
 
 const signupCtrl = async (req, res) => {
   const { email, password, subscription } = req.body;
@@ -60,10 +65,32 @@ const updateSubscriptionCtrl = async (req, res) => {
   res.json(updatedUser);
 };
 
+const updateAvatarCtrl = async (req, res) => {
+  const { _id } = req.user;
+  const { path: tempUpload, originalname } = req.file;
+  const filename = `${_id}_${originalname}`;
+  const resultUpload = path.join(avatarsDir, filename);
+
+  try {
+    const image = await Jimp.read(tempUpload);
+    await image.cover(250, 250).write(resultUpload);
+    await fs.unlink(tempUpload);
+  } catch (error) {
+    await fs.unlink(tempUpload);
+    throw new Error(error);
+  }
+
+  const avatarURL = path.join("avatars", filename);
+  await User.findByIdAndUpdate(_id, { avatarURL });
+
+  res.json({ avatarURL });
+};
+
 module.exports = {
   signupCtrl: ctrlWrapper(signupCtrl),
   loginCtrl: ctrlWrapper(loginCtrl),
   getCurrentCtrl: ctrlWrapper(getCurrentCtrl),
   logoutCtrl: ctrlWrapper(logoutCtrl),
   updateSubscriptionCtrl: ctrlWrapper(updateSubscriptionCtrl),
+  updateAvatarCtrl: ctrlWrapper(updateAvatarCtrl),
 };

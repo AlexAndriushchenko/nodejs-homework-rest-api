@@ -1,4 +1,5 @@
 const jwt = require("jsonwebtoken");
+const gravatar = require("gravatar");
 const User = require("../db/models/userModel");
 const HttpError = require("../helpers/HttpError");
 
@@ -8,10 +9,12 @@ const signToken = (id) =>
   });
 
 const signup = async (email, password, subscription) => {
+  const avatarURL = gravatar.url(email);
   const newUser = await User.create({
     email,
     password,
     subscription,
+    avatarURL,
   });
 
   newUser.password = undefined;
