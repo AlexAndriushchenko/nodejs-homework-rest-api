@@ -4,6 +4,7 @@ const authController = require("../../controllers/authController");
 
 const {
   signupSchema,
+  emailSchema,
   loginSchema,
   subscriptionSchema,
 } = require("../../schemas/userSchema");
@@ -17,6 +18,14 @@ router.post(
   "/register",
   validateBody("signupSchema", signupSchema),
   authController.signupCtrl
+);
+
+router.get("/verify/:verificationToken", authController.verifyEmailCtrl);
+ 
+router.post(
+  "/verify",
+  validateBody("emailSchema", emailSchema),
+  authController.resendVerifyEmailCtrl
 );
 
 router.post(
