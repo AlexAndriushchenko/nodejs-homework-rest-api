@@ -2,6 +2,11 @@ const jwt = require("jsonwebtoken");
 const gravatar = require("gravatar");
 const User = require("../db/models/userModel");
 const HttpError = require("../helpers/HttpError");
+const { nanoid } = require("nanoid");
+const sendEmail = require("../helpers/sendEmail");
+require("dotenv").config();
+
+const { BASE_URL } = process.env;
 
 const signToken = (id) =>
   jwt.sign({ id }, process.env.JWT_SECRET, {
@@ -10,14 +15,22 @@ const signToken = (id) =>
 
 const signup = async (email, password, subscription) => {
   const avatarURL = gravatar.url(email);
+  const verificationToken = nanoid();
   const newUser = await User.create({
     email,
     password,
     subscription,
     avatarURL,
+    verificationToken,
   });
 
   newUser.password = undefined;
+
+  sendEmail({
+    to: email,
+    subject: "Verify email",
+    html: `Please, verify your email by clicking on <a target="_blank" href="${BASE_URL}/users/verify/${verificationToken}">this link</a>`,
+  });
 
   return newUser;
 };
@@ -26,6 +39,10 @@ const login = async (email, password) => {
   const userInBase = await User.findOne({ email }).select("+password");
   if (!userInBase) {
     throw HttpError(401, "Email or password is wrong");
+  }
+
+  if (!userInBase.verify) {
+    throw HttpError(401, "Email not verified");
   }
 
   const passwordIsValid = await userInBase.checkPassword(

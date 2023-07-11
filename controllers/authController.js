@@ -3,6 +3,7 @@ const fs = require("fs/promises");
 const Jimp = require("jimp");
 const User = require("../db/models/userModel");
 const HttpError = require("../helpers/HttpError");
+const sendEmail = require("../helpers/sendEmail");
 const ctrlWrapper = require("../helpers/ctrlWrapper");
 const {
   signup,
@@ -10,6 +11,9 @@ const {
   logout,
   updateSubscription,
 } = require("../services/authService");
+require("dotenv").config();
+
+const { BASE_URL } = process.env;
 
 const avatarsDir = path.join(__dirname, "../", "public", "avatars");
 
@@ -29,6 +33,43 @@ const signupCtrl = async (req, res) => {
       subscription: newUser.subscription,
     },
   });
+};
+
+const verifyEmailCtrl = async (req, res) => {
+  const { verificationToken } = req.params;
+
+  const userInBase = await User.findOne({ verificationToken });
+  if (!userInBase) {
+    throw HttpError(404, "User not found");
+  }
+
+  await User.findByIdAndUpdate(userInBase._id, {
+    verify: true,
+    verificationToken: null,
+  });
+
+  res.json({ message: "Verification successful" });
+};
+
+const resendVerifyEmailCtrl = async (req, res) => {
+  const { email } = req.body;
+
+  const userInBase = await User.findOne({ email });
+  if (!userInBase) {
+    throw HttpError(404, "User not found");
+  }
+  if (userInBase.verify) {
+    throw HttpError(400, "Verification has already been passed");
+  }
+
+  sendEmail({
+    to: email,
+    subject: "Verify email",
+    html: `Please, verify your email by clicking on <a target="_blank" href="${BASE_URL}/users/verify/${userInBase.verificationToken}">this link</a>`,
+  });
+
+  res.json({ message: "Verification email sent" });
+
 };
 
 const loginCtrl = async (req, res) => {
@@ -88,6 +129,8 @@ const updateAvatarCtrl = async (req, res) => {
 
 module.exports = {
   signupCtrl: ctrlWrapper(signupCtrl),
+  verifyEmailCtrl: ctrlWrapper(verifyEmailCtrl),
+  resendVerifyEmailCtrl: ctrlWrapper(resendVerifyEmailCtrl),
   loginCtrl: ctrlWrapper(loginCtrl),
   getCurrentCtrl: ctrlWrapper(getCurrentCtrl),
   logoutCtrl: ctrlWrapper(logoutCtrl),
